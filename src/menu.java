@@ -1,4 +1,9 @@
+import java.security.KeyPair;
+import java.security.KeyPairGenerator;
+import java.security.Signature;
 import java.util.Scanner;
+
+import javax.crypto.Cipher;
 
 public class menu {
 
@@ -7,6 +12,7 @@ public class menu {
 	public static double e;
 	public static double phi;
 	public static double d;
+	public static double c;
 
 	
 	public static void main(String[] args) throws Exception {
@@ -14,19 +20,20 @@ public class menu {
 		
 		
 		System.out.println("1 - Key Generation");
-		System.out.println("2 - RSA Encryption Algorithm");
-		System.out.println("3 - RSA Decryption Algorithm");
+		System.out.println("2 - RSA Encryption & Decryption Algorithm");
+		System.out.println("3 - RSA Completed Algorithm");
+		
 		Scanner scanchoice = new Scanner(System.in);
 
 		int choiceentry = scanchoice.nextInt();
 
 		System.out.println();
 
-		if (choiceentry != 3) {
+		if (choiceentry != 4) {
 
-		    if (choiceentry < 1 || choiceentry > 4) {
+		    if (choiceentry < 1 || choiceentry > 5) {
 
-		        System.out.println("Enter \"1\", \"2\", \"3\"");
+		        System.out.println("Enter \"1\", \"2\", \"3\" ,\"4\", \"5\"");
 		        choiceentry = scanchoice.nextInt();
 
 		    }
@@ -41,13 +48,88 @@ public class menu {
 		        
 		    }
 		    else if(choiceentry == 3) {
-		    	DecryptionAlgo();
+		    	myCipher();
 
 		    }
+		
 
 		}
 
 	}
+	
+
+	public static void myCipher() throws Exception {
+			
+			
+		
+		// TODO Auto-generated method stub
+	    Scanner myObj = new Scanner(System.in);  // Create a Scanner object
+	    System.out.println("ALICE - Enter The Message you would like to send to Bob");
+
+	    String UserInput = myObj.nextLine();  // Read user input
+	  
+	    
+		
+		 Signature sign = Signature.getInstance("SHA256withRSA");
+		 
+	     
+	      //Creating KeyPair generator object
+	      KeyPairGenerator keyPairGen = KeyPairGenerator.getInstance("RSA");
+		    
+
+	      //Initializing the key pair generator
+	      keyPairGen.initialize(2048);
+	      
+	      //Generating the pair of keys
+	      KeyPair pair = keyPairGen.generateKeyPair(); 
+		    
+
+		
+	      //Creating a Cipher object
+	      Cipher cipher = Cipher.getInstance("RSA/ECB/PKCS1Padding");
+		
+
+	      System.out.println("ALICE :" + pair);
+
+	      //Initializing a Cipher object
+	      cipher.init(Cipher.ENCRYPT_MODE, pair.getPublic());
+		  
+	      //Adding data to the cipher
+	      
+	      byte[] input = UserInput.getBytes();	  
+	      cipher.update(input);
+		  
+	      //encrypting the data
+	      byte[] cipherText = cipher.doFinal();	
+	      
+	      System.out.println("Encryption Being Sent To Bob: ");
+
+	      System.out.println(new String(cipherText, "UTF8"));
+	      
+	      
+	      //BOB - Using the same cipher to initialise the decryption
+	      cipher.init(Cipher.DECRYPT_MODE, pair.getPrivate());
+	      
+	      //Decrypting the text
+	      System.out.println("BOB - Recieves the cipher text and decrypts with the Key Pair");
+
+	      byte[] decipheredText = cipher.doFinal(cipherText);
+
+	      System.out.println("Decryption: ");
+	      System.out.println(new String(decipheredText));
+	      
+	      //Showing the Cipher Pairs are the same as the One Alice Used.
+	      System.out.println("BOB :" + pair);
+
+
+
+	      
+	      System.exit(0);
+		
+		}
+
+
+
 	
 	public static void PhiEquation(double p, double q) {
 		
@@ -56,6 +138,7 @@ public class menu {
 		System.out.println("PHI = "+ phi);
 		
 	}
+	
 	//Checking if phi and e have a share a commmon factor
 
 	public static double findFactor(double x, double y) {
@@ -107,6 +190,7 @@ public class menu {
 		double qq = UserQ.nextInt();
 		
 	}
+	
 	//Key Generator
 	public static void KeyGenerator() throws Exception {
 
@@ -120,9 +204,6 @@ public class menu {
 		System.out.print("\nEnter Value of Q: ");
 		Scanner UserQ = new Scanner(System.in);
 
-//		Scanner UserP = new Scanner("Enter Value of P: " + System.in);
-//		Scanner UserQ = new Scanner("Enter Value of Q: " + System.in);
-
 		double p = UserP.nextInt();
 		double q = UserQ.nextInt();
 
@@ -132,7 +213,7 @@ public class menu {
 		checkPrime(p);
 		checkPrime(q);
 		
-
+//Our first public key is created
 		n = p*q;
 		
 
@@ -170,24 +251,18 @@ public class menu {
 		
 		return; 
 		
-
-		
-
-		
 	}
 
 
-	public static void EncryptionAlgoo() {
-		Scanner message = new Scanner(" What is the value of your message: "+ System.in);
-		Scanner UserN  = new Scanner("What is the value of N: " + System.in);
-	}
+
 	public static void EncryptionAlgo() {
+		
+		//Takes the input values 
 		
 		System.out.print("Enter Value of P: ");
 		Scanner UserP = new Scanner(System.in);
 		System.out.print("Enter Value of Q: ");
 		Scanner UserQ = new Scanner(System.in);
-		
 		
 		
 		double p = UserP.nextInt();
@@ -209,7 +284,6 @@ public class menu {
 
 		
 		//Phi to ensure x^n mod phi = 1 
-
 		phi = (p-1)*(q-1);
 		System.out.print("\nWhat is the value of PHI: " + phi);
 		double MM = M;
@@ -220,17 +294,21 @@ public class menu {
 		System.out.print("\nWhat is the value of E: " + e);
 
 		boolean isItPrime = true; 
+		//Checks that e and phi have not got a common factor
 
 		double g = findFactor(e,phi);
+		
+		//If there's a common factor, it will increment e and check if e is prime so we ensure we are meeting requirements for RSA
 		
 		if (g == e) {
 			e += 1;
 			for (int i = 2; i <= e/2; i++) {
 				if((e % i) == 0) {
 					isItPrime = false;
-					e+=1;
+					
+					e+=1; //Incremental of e 
 				}
-				System.out.println("E: "+ e);
+				System.out.println("\nE: "+ e);
 			}
 			
 
@@ -239,39 +317,34 @@ public class menu {
 
 		double n = p * q;
 		
+
 		
 		double d = (1 + (PublicK*phi))/e;
-	
-		
+
 		//Performs the Encryption of M^e mod n = c;
 
-		MM = Math.pow(M,e);
-		double c = MM % n;
-		
-		System.out.println("\nEncrypted Data: " + c);
-		
 		double m = Math.pow(c, d);
 		double mm = m%n;
 		
-
 		System.out.println("\nOriginal Message: " + mm);
 
+		
+		MM = Math.pow(M,e);
+		c = MM % n;
+		
+		System.out.println("\nDecryption Section");
+
+		System.out.println("\nEncrypted Data: " + c);
+		
+	
 
 
 		
 	}
 	
 
-	private static int findFactor(boolean b) {
-		// TODO Auto-generated method stub
-		return 0;
-	}
-
-	public static double DecryptionAlgo() {
-
-		
-		
-			
-	}
+	
+	
+	
 
 }
